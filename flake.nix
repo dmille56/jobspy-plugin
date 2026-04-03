@@ -2,34 +2,29 @@
   description = "job search openclaw plugin";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    flake-parts.url = "github:hercules-ci/flake-parts";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = inputs@{ flake-parts, ... }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
-
-      perSystem = { self', pkgs, system, ... }:
+  outputs = { self, nixpkgs, flake-utils }:
+    flake-utils.lib.eachDefaultSystem (system:
       let
-        myPython = (pkgs.python3.withPackages (python-pkgs: [
+        pkgs = import nixpkgs { inherit system; };
+        myPython = pkgs.python3.withPackages (python-pkgs: [
           python-pkgs.jobspy
           python-pkgs.python-lsp-server
           python-pkgs.ruff
-        ]));
+        ]);
       in
       {
         devShells.default = pkgs.mkShell {
-          packages = [
-            myPython
-          ];
-
+          packages = [ myPython ];
           shellHook = ''
-            # so running the python module runs correctly
             export PYTHONPATH="src:."
           '';
         };
-        
-        packages.default = pkgs.hello;
+
+        packages.default = myPython;
 
         openclawPlugin = {
           name = "jobspy";
@@ -40,8 +35,6 @@
             requiredEnv = [ ];
           };
         };
-      };
-
-      systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
-    };
+      }
+    );
 }
