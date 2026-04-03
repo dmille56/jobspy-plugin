@@ -27,10 +27,10 @@
         packages.default = myPython;
       }
     ) // {
-      openclawPlugin = {
+      openclawPlugin = system: {
         name = "jobspy";
         skills = [ ./skills/jobspy ];
-        packages = system: [ self.packages.${system}.default ];
+        packages = [ self.packages.${system}.default ];
         needs = {
           stateDirs = [ ];
           requiredEnv = [ ];
