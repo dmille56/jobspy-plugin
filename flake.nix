@@ -25,6 +25,10 @@
         };
 
         packages.default = myPython;
+
+        apps.default = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.default;
+        };
       }
     ) // {
       openclawPlugin = system: {
