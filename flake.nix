@@ -1,5 +1,5 @@
 {
-  description = "job search openclaw plugin";
+  description = "jobspy job search openclaw plugin";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
