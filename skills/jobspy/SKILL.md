@@ -70,11 +70,34 @@ The script reads this file automatically on every run. Filtering and fit scoring
 - **`fit_keywords`**: Weighted terms scored against title + description; results are sorted by `fit_score` descending.
 - **`fit_description`**: Plain-English ideal-job description — use as context when summarizing or highlighting top matches.
 
+## Application tracking (`tracker.py`)
+
+Use `tracker.py` (in the same directory as this file) to record jobs you have applied to. Tracked jobs are **automatically excluded** from all future `search.py` results.
+
+```bash
+# Record an application
+python tracker.py add <url> [--title "..."] [--company "..."] [--location "..."]
+
+# List tracked applications (optionally filter by status)
+python tracker.py list [--status applied|interviewing|offer|rejected|withdrawn]
+
+# Update the status of an application
+python tracker.py status <url> <new_status>
+
+# Remove a URL from the tracker
+python tracker.py remove <url>
+```
+
+Valid statuses: `applied`, `interviewing`, `offer`, `rejected`, `withdrawn`
+
+Database: `~/.config/openclaw-jobspy/applications.db` (SQLite, created automatically on first use)
+
 ## Workflow
 
 1. Ask for search term and location if not provided.
-2. Run `search.py` with the appropriate flags.
+2. Run `search.py` with the appropriate flags — already-applied jobs are filtered out automatically.
 3. Display the printed table (already sorted by `fit_score` if preferences are set).
 4. Offer to save to CSV (`--output jobs.csv`).
-5. If the user wants to update preferences (block a company, add a keyword, etc.), update `~/.config/openclaw-jobspy/preferences.json` and confirm.
-6. If rate-limited (HTTP 429), suggest reducing `--results` or adding proxies via the `proxies` parameter in a manual script call.
+5. When the user says they have applied to a job, run `tracker.py add <url>` with any available title/company metadata.
+6. If the user wants to update preferences (block a company, add a keyword, etc.), update `~/.config/openclaw-jobspy/preferences.json` and confirm.
+7. If rate-limited (HTTP 429), suggest reducing `--results` or adding proxies via the `proxies` parameter in a manual script call.

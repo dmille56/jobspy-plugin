@@ -9,6 +9,7 @@ This plugin provides job search capabilities across LinkedIn, Indeed, Glassdoor,
 - Default to `--sites indeed,linkedin,zip_recruiter,google` unless the user specifies otherwise.
 - Present the printed table as-is; results are already filtered and sorted by fit score.
 - Offer to save results to CSV (`--output <file>`) after every search.
+- When the user says they applied to a job (by URL or from search results), immediately run `tracker.py add <url>` with any available title/company/location metadata.
 - If rate-limited (HTTP 429), suggest reducing `--results` or adding proxies — do not retry blindly.
 - Never expose proxy credentials in output or saved files.
 
@@ -23,6 +24,7 @@ This plugin provides job search capabilities across LinkedIn, Indeed, Glassdoor,
 
 - No required environment variables.
 - `~/.config/openclaw-jobspy/preferences.json` (optional): persistent filtering and fit-scoring preferences — see SKILL.md for the full schema.
+- `~/.config/openclaw-jobspy/applications.db` (SQLite): application tracker — created automatically on first `tracker.py` use; read by `search.py` on every run.
 - `proxies` (optional): pass directly in a manual `scrape_jobs()` call if `search.py` doesn't expose it yet.
 
 ## Rate limit notes

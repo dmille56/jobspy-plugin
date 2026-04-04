@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 jobspy search script — wraps python-jobspy with preference-based filtering and fit scoring.
-Preferences are read from ~/.config/jobspy/preferences.json automatically.
+Preferences are read from ~/.config/openclaw-jobspy/preferences.json automatically.
+Jobs already tracked in the applications DB are filtered out automatically.
 
 Usage:
     python search.py --search-term "software engineer" --location "Austin, TX" [options]
@@ -12,6 +13,7 @@ import csv
 import json
 import os
 import re
+import sqlite3
 import sys
 
 
@@ -20,6 +22,7 @@ import sys
 # ---------------------------------------------------------------------------
 
 PREFS_PATH = os.path.expanduser("~/.config/openclaw-jobspy/preferences.json")
+DB_PATH = os.path.expanduser("~/.config/openclaw-jobspy/applications.db")
 
 
 def load_preferences():
@@ -30,7 +33,35 @@ def load_preferences():
 
 
 # ---------------------------------------------------------------------------
-# Filtering
+# Applied-jobs filter
+# ---------------------------------------------------------------------------
+
+def load_applied_urls():
+    """Return the set of job URLs already tracked in the applications DB."""
+    if not os.path.exists(DB_PATH):
+        return set()
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        rows = conn.execute("SELECT job_url FROM applications").fetchall()
+        conn.close()
+        return {row[0] for row in rows}
+    except sqlite3.Error:
+        return set()
+
+
+def filter_applied(jobs, applied_urls):
+    if not applied_urls:
+        return jobs
+    before = len(jobs)
+    jobs = jobs[~jobs["job_url"].isin(applied_urls)]
+    removed = before - len(jobs)
+    if removed > 0:
+        print(f"[tracker] Skipped {removed} job(s) you have already applied to.", file=sys.stderr)
+    return jobs.reset_index(drop=True)
+
+
+# ---------------------------------------------------------------------------
+# Preferences filtering
 # ---------------------------------------------------------------------------
 
 def apply_filters(jobs, prefs):
@@ -160,6 +191,9 @@ def main():
         kwargs["linkedin_fetch_description"] = True
 
     jobs = scrape_jobs(**kwargs)
+
+    # Filter out already-applied jobs
+    jobs = filter_applied(jobs, load_applied_urls())
 
     # Load preferences and apply filters/scoring
     prefs = load_preferences()
