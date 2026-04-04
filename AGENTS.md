@@ -9,9 +9,29 @@ This plugin provides job search capabilities across LinkedIn, Indeed, Glassdoor,
 - Default to `--sites indeed,linkedin,zip_recruiter,google` unless the user specifies otherwise.
 - Present the printed table as-is; results are already filtered and sorted by fit score.
 - Offer to save results to CSV (`--output <file>`) after every search.
-- When the user says they applied to a job (by URL or from search results), immediately run `tracker.py add <url>` with any available title/company/location metadata.
+- When the user says they applied to a job, immediately run `tracker.py add <url>` and pass every available field from the search results (site, title, company, company_url, location, is_remote, job_type, job_function, job_level, company_industry, date_posted, salary fields, description, emails). More metadata stored now means better context later.
+- Use `tracker.py notes <url> "<text>"` whenever the user mentions a new development (phone screen, interview scheduled, offer received) rather than re-running `add`.
+- Use `tracker.py status <url> <status>` when the user reports a status change.
 - If rate-limited (HTTP 429), suggest reducing `--results` or adding proxies — do not retry blindly.
 - Never expose proxy credentials in output or saved files.
+
+## Adding a job to the tracker by URL
+
+When the user gives you a job URL to track directly (not from a prior search result), follow these steps before calling `tracker.py add`:
+
+1. **Detect the board** from the URL domain — see the domain→site mapping table in SKILL.md.
+
+2. **Fetch the page** using the WebFetch tool. Extract every field the tracker stores: title, company, company_url, location, is_remote, job_type, job_function, job_level, company_industry, date_posted, salary (min/max/interval/currency), description, emails. Strip HTML from description text.
+
+3. **If WebFetch fails or returns a login wall** (common with LinkedIn):
+   - Parse any title or company visible in the URL path or that the user mentioned.
+   - Run `search.py` with a narrow query (`--search-term "<title>" --sites <board> --results 5`) and find the closest matching result by URL similarity or title+company match.
+   - Use that result's structured data to fill the tracker fields.
+   - If still no match, add the URL with only what is known and tell the user which fields are missing.
+
+4. **Run `tracker.py add`** with all extracted fields. Show the user a brief summary: which fields were filled and which were left blank.
+
+Do not ask the user to manually supply fields that you can fetch yourself.
 
 ## Preferences
 
