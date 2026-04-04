@@ -19,7 +19,7 @@ import sys
 # Preferences
 # ---------------------------------------------------------------------------
 
-PREFS_PATH = os.path.expanduser("~/.config/jobspy/preferences.json")
+PREFS_PATH = os.path.expanduser("~/.config/openclaw-jobspy/preferences.json")
 
 
 def load_preferences():

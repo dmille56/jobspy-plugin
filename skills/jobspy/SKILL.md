@@ -43,7 +43,7 @@ python <path_to_search.py> --search-term "software engineer" --location "Austin,
 - **ZipRecruiter**: US and Canada only
 - **Google**: Supports advanced search syntax natively via `--search-term`
 
-## User preferences (`~/.config/jobspy/preferences.json`)
+## User preferences (`~/.config/openclaw-jobspy/preferences.json`)
 
 The script reads this file automatically on every run. Filtering and fit scoring require no flags — just maintain this file.
 
@@ -76,5 +76,5 @@ The script reads this file automatically on every run. Filtering and fit scoring
 2. Run `search.py` with the appropriate flags.
 3. Display the printed table (already sorted by `fit_score` if preferences are set).
 4. Offer to save to CSV (`--output jobs.csv`).
-5. If the user wants to update preferences (block a company, add a keyword, etc.), update `~/.config/jobspy/preferences.json` and confirm.
+5. If the user wants to update preferences (block a company, add a keyword, etc.), update `~/.config/openclaw-jobspy/preferences.json` and confirm.
 6. If rate-limited (HTTP 429), suggest reducing `--results` or adding proxies via the `proxies` parameter in a manual script call.

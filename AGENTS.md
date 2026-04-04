@@ -14,15 +14,15 @@ This plugin provides job search capabilities across LinkedIn, Indeed, Glassdoor,
 
 ## Preferences
 
-- Preferences live at `~/.config/jobspy/preferences.json` and are applied automatically by `search.py`.
+- Preferences live at `~/.config/openclaw-jobspy/preferences.json` and are applied automatically by `search.py`.
 - When the user says things like "block that company", "never show clearance jobs", or "add React as a fit keyword", update the JSON file and confirm the change.
-- If the preferences file doesn't exist yet and the user wants to set one up, create `~/.config/jobspy/` and write the file — show the user the JSON before saving.
+- If the preferences file doesn't exist yet and the user wants to set one up, create `~/.config/openclaw-jobspy/` and write the file — show the user the JSON before saving.
 - Use `fit_description` as context when writing summaries or calling out top matches; don't just print it verbatim.
 
 ## Knobs
 
 - No required environment variables.
-- `~/.config/jobspy/preferences.json` (optional): persistent filtering and fit-scoring preferences — see SKILL.md for the full schema.
+- `~/.config/openclaw-jobspy/preferences.json` (optional): persistent filtering and fit-scoring preferences — see SKILL.md for the full schema.
 - `proxies` (optional): pass directly in a manual `scrape_jobs()` call if `search.py` doesn't expose it yet.
 
 ## Rate limit notes
