@@ -4,79 +4,77 @@ description: Search for job postings across LinkedIn, Indeed, Glassdoor, ZipRecr
 metadata: {"openclaw": {"emoji": "💼", "requires": {"bins": ["python3"]}, "install": [{"id": "uv", "kind": "uv", "label": "Install python-jobspy", "formula": "python-jobspy"}]}}
 ---
 
-Use the `python-jobspy` library to search for job postings across multiple job boards concurrently. The library is imported as `from jobspy import scrape_jobs` and returns a pandas DataFrame.
+Use `search.py` (in the same directory as this file) to search for jobs across multiple boards. The script handles scraping, filtering, and fit scoring automatically — do not write your own Python for these tasks.
 
 ## Trigger
 
 TRIGGER when the user wants to search for jobs, find job postings, scrape job listings, or query job boards (LinkedIn, Indeed, Glassdoor, ZipRecruiter, Google Jobs, Bayt, BDJobs).
 
-## How to search for jobs
+## Running a search
 
-Write and execute a Python script using `scrape_jobs()`. Always print a summary and offer to save results to CSV.
+Find `search.py` in the same directory as this SKILL.md, then run:
 
-### Core parameters
+```bash
+python <path_to_search.py> --search-term "software engineer" --location "Austin, TX" [options]
+```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `site_name` | list\|str | Boards to search: `"linkedin"`, `"indeed"`, `"zip_recruiter"`, `"glassdoor"`, `"google"`, `"bayt"`, `"bdjobs"` |
-| `search_term` | str | Job title or keyword (e.g. `"software engineer"`) |
-| `location` | str | City, state, or country (e.g. `"Austin, TX"`) |
-| `results_wanted` | int | Number of results per site (default: 15) |
-| `hours_old` | int | Only return postings newer than this many hours |
-| `job_type` | str | `"fulltime"`, `"parttime"`, `"internship"`, or `"contract"` |
-| `is_remote` | bool | Filter for remote positions |
-| `distance` | int | Search radius in miles (default: 50) |
-| `country_indeed` | str | Country for Indeed/Glassdoor (e.g. `"USA"`, `"UK"`) |
-| `enforce_annual_salary` | bool | Normalize all salaries to annual |
-| `linkedin_fetch_description` | bool | Fetch full job descriptions from LinkedIn (slower) |
-| `description_format` | str | `"markdown"` (default) or `"html"` |
-| `verbose` | int | `0`=errors only, `1`=warnings, `2`=all logs |
-| `proxies` | list | Proxy list if rate-limited (e.g. `["user:pass@host:port"]`) |
+### Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--search-term`, `-s` | *(required)* | Job title or keyword |
+| `--location`, `-l` | | City, state, or country |
+| `--sites` | `indeed,linkedin,zip_recruiter,google` | Comma-separated boards: `indeed`, `linkedin`, `zip_recruiter`, `glassdoor`, `google`, `bayt`, `bdjobs` |
+| `--results`, `-n` | `15` | Results per site |
+| `--hours-old` | | Only postings newer than N hours |
+| `--job-type` | | `fulltime`, `parttime`, `internship`, or `contract` |
+| `--remote` | | Remote positions only |
+| `--distance` | `50` | Search radius in miles |
+| `--country-indeed` | `USA` | Country for Indeed/Glassdoor |
+| `--no-enforce-annual-salary` | | Skip normalizing salaries to annual |
+| `--fetch-linkedin-descriptions` | | Fetch full descriptions from LinkedIn (slower) |
+| `--output`, `-o` | | Save full results to this CSV path |
+| `--verbose` | `1` | `0`=errors only, `1`=warnings, `2`=all logs |
 
 ### Site-specific notes
 
-- **LinkedIn**: Global; strictest rate limits — use proxies for large searches; `hours_old` and `easy_apply` cannot be combined
-- **Indeed/Glassdoor**: 50+ countries; requires `country_indeed`; `hours_old` cannot be combined with `job_type`/`is_remote`/`easy_apply`
+- **LinkedIn**: Strictest rate limits — reduce `--results` or use proxies for large searches; `--hours-old` and `easy_apply` cannot be combined
+- **Indeed/Glassdoor**: `--hours-old` cannot be combined with `--job-type`, `--remote`
 - **ZipRecruiter**: US and Canada only
-- **Google Jobs**: Use `google_search_term` for advanced syntax instead of `search_term`
-- **Bayt/BDJobs**: International; `search_term` parameter only
+- **Google**: Supports advanced search syntax natively via `--search-term`
 
-### Output columns
+## User preferences (`~/.config/jobspy/preferences.json`)
 
-`site`, `title`, `company`, `company_url`, `job_url`, `location`, `is_remote`, `job_type`, `job_function`, `date_posted`, `salary_interval`, `min_amount`, `max_amount`, `currency`, `description`, `emails`
+The script reads this file automatically on every run. Filtering and fit scoring require no flags — just maintain this file.
 
-LinkedIn also returns: `job_level`, `company_industry`
-Indeed also returns: `company_country`, `company_addresses`, `company_employees_label`, `company_revenue_label`, `company_description`, `company_logo`
-
-## Example script
-
-```python
-from jobspy import scrape_jobs
-import csv
-
-jobs = scrape_jobs(
-    site_name=["indeed", "linkedin", "zip_recruiter", "google"],
-    search_term="software engineer",
-    location="San Francisco, CA",
-    results_wanted=20,
-    hours_old=72,
-    country_indeed="USA",
-    enforce_annual_salary=True,
-    verbose=1,
-)
-
-print(f"Found {len(jobs)} jobs")
-print(jobs[["site", "title", "company", "location", "min_amount", "max_amount", "job_url"]].to_string(index=False))
-
-# Save to CSV
-jobs.to_csv("jobs.csv", quoting=csv.QUOTE_NONNUMERIC, index=False)
-print("Saved to jobs.csv")
+```json
+{
+  "blocked_companies": ["Acme Corp", "Initech"],
+  "blocked_title_keywords": ["staff", "principal", "director", "VP"],
+  "blocked_description_keywords": ["security clearance", "10+ years"],
+  "required_title_keywords": ["engineer", "developer"],
+  "fit_keywords": [
+    {"keyword": "python", "weight": 3},
+    {"keyword": "remote", "weight": 2},
+    {"keyword": "rust", "weight": 2},
+    {"keyword": "kubernetes", "weight": 1}
+  ],
+  "fit_description": "Free-text description of the ideal role — used as context when summarizing results."
+}
 ```
+
+- **`blocked_companies`**: Removed from results (case-insensitive substring match).
+- **`blocked_title_keywords`**: Jobs whose title matches any of these are removed.
+- **`blocked_description_keywords`**: Jobs whose description matches any of these are removed.
+- **`required_title_keywords`**: If non-empty, only jobs matching at least one are kept.
+- **`fit_keywords`**: Weighted terms scored against title + description; results are sorted by `fit_score` descending.
+- **`fit_description`**: Plain-English ideal-job description — use as context when summarizing or highlighting top matches.
 
 ## Workflow
 
-1. Ask the user for: search term, location, job type (if not provided), and which sites to search (default: indeed, linkedin, zip_recruiter, google)
-2. Run the script via Bash
-3. Display a concise table of results (title, company, location, salary, URL)
-4. Offer to save to CSV or filter further (by salary, job type, remote, date, etc.)
-5. If rate-limited (HTTP 429), suggest adding proxies or reducing `results_wanted`
+1. Ask for search term and location if not provided.
+2. Run `search.py` with the appropriate flags.
+3. Display the printed table (already sorted by `fit_score` if preferences are set).
+4. Offer to save to CSV (`--output jobs.csv`).
+5. If the user wants to update preferences (block a company, add a keyword, etc.), update `~/.config/jobspy/preferences.json` and confirm.
+6. If rate-limited (HTTP 429), suggest reducing `--results` or adding proxies via the `proxies` parameter in a manual script call.
