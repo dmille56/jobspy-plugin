@@ -82,8 +82,11 @@ Application methods: `website`, `easy_apply`, `referral`, `email`, `other`
 
 ### Subcommands
 
+Jobs are assigned a short **numeric ID** on creation (shown by `add` and `list`). All commands except `add` accept either the ID or the full URL — prefer the ID in practice.
+
 ```bash
 # Record an application — include as much metadata as available
+# Prints the assigned ID on success, e.g. "Added (ID 7): https://..."
 python tracker.py add <url> \
     --site linkedin --title "Software Engineer" --company "Acme" \
     --company-url "https://acme.com" --location "Austin, TX" --remote \
@@ -95,19 +98,20 @@ python tracker.py add <url> \
     --notes "Applied via LinkedIn easy apply"
 
 # Show all stored details for one application
-python tracker.py show <url>
+python tracker.py show 7
+python tracker.py show <url>   # URL also accepted
 
-# List all applications (compact table), optionally filter by status
-python tracker.py list [--status applied|interviewing|offer|rejected|withdrawn]
+# List all applications — ID column appears first
+python tracker.py list [--status applied|interviewing|offer|rejected|withdrawn] [--company "Acme"]
 
-# Append a timestamped note to an application
-python tracker.py notes <url> "Had phone screen with recruiter Sarah. Next: technical."
+# Append a timestamped note (use ID or URL)
+python tracker.py notes 7 "Had phone screen with recruiter Sarah. Next: technical."
 
-# Update status
-python tracker.py status <url> interviewing
+# Update status (use ID or URL)
+python tracker.py status 7 interviewing
 
-# Remove from tracker (will reappear in future searches)
-python tracker.py remove <url>
+# Remove from tracker — will reappear in future searches (use ID or URL)
+python tracker.py remove 7
 ```
 
 ### Fields stored

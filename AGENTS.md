@@ -9,9 +9,10 @@ This plugin provides job search capabilities across LinkedIn, Indeed, Glassdoor,
 - Default to `--sites indeed,linkedin,zip_recruiter,google` unless the user specifies otherwise.
 - Present the printed table as-is; results are already filtered and sorted by fit score.
 - Offer to save results to CSV (`--output <file>`) after every search.
-- When the user says they applied to a job, immediately run `tracker.py add <url>` and pass every available field from the search results (site, title, company, company_url, location, is_remote, job_type, job_function, job_level, company_industry, date_posted, salary fields, description, emails). More metadata stored now means better context later.
-- Use `tracker.py notes <url> "<text>"` whenever the user mentions a new development (phone screen, interview scheduled, offer received) rather than re-running `add`.
-- Use `tracker.py status <url> <status>` when the user reports a status change.
+- When the user says they applied to a job, immediately run `tracker.py add <url>` and pass every available field from the search results (site, title, company, company_url, location, is_remote, job_type, job_function, job_level, company_industry, date_posted, salary fields, description, emails). The command prints the assigned numeric ID — tell the user what it is.
+- Use the numeric ID (not the URL) in all subsequent `show`, `notes`, `status`, and `remove` commands. The URL is still accepted but the ID is far easier for the user to reference.
+- Use `tracker.py notes <id> "<text>"` whenever the user mentions a new development (phone screen, interview scheduled, offer received) rather than re-running `add`.
+- Use `tracker.py status <id> <status>` when the user reports a status change.
 - If rate-limited (HTTP 429), suggest reducing `--results` or adding proxies — do not retry blindly.
 - Never expose proxy credentials in output or saved files.
 

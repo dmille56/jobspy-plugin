@@ -5,13 +5,16 @@ automatically filtered out of future searches.
 
 Database: ~/.config/openclaw-jobspy/applications.db
 
+Jobs are assigned a short numeric ID on creation. All commands that previously
+required a full URL now accept either the numeric ID or the URL.
+
 Usage:
     python tracker.py add <url> [options]
-    python tracker.py show <url>
-    python tracker.py list [--status <status>]
-    python tracker.py notes <url> <text>
-    python tracker.py status <url> <new_status>
-    python tracker.py remove <url>
+    python tracker.py show <id|url>
+    python tracker.py list [--status <status>] [--company <name>]
+    python tracker.py notes <id|url> <text>
+    python tracker.py status <id|url> <new_status>
+    python tracker.py remove <id|url>
 """
 
 import argparse
@@ -144,6 +147,31 @@ def truncate(text, width):
 
 
 # ---------------------------------------------------------------------------
+# Entry resolver — accepts numeric ID or full URL
+# ---------------------------------------------------------------------------
+
+def resolve_entry(conn, ref):
+    """Return the application row matching a numeric ID or a job URL.
+    Exits with an error message if nothing is found.
+    """
+    if str(ref).lstrip("-").isdigit():
+        row = conn.execute(
+            "SELECT * FROM applications WHERE id = ?", (int(ref),)
+        ).fetchone()
+        if not row:
+            print(f"No application with ID {ref}.", file=sys.stderr)
+            sys.exit(1)
+    else:
+        row = conn.execute(
+            "SELECT * FROM applications WHERE job_url = ?", (ref,)
+        ).fetchone()
+        if not row:
+            print(f"URL not found in tracker: {ref}", file=sys.stderr)
+            sys.exit(1)
+    return row
+
+
+# ---------------------------------------------------------------------------
 # Subcommands
 # ---------------------------------------------------------------------------
 
@@ -195,8 +223,9 @@ def cmd_add(args):
                 "notes":              args.notes,
             },
         )
+        row_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
         conn.commit()
-        print(f"Added: {args.url}")
+        print(f"Added (ID {row_id}): {args.url}")
         parts = [p for p in [args.title, args.company, args.location] if p]
         if parts:
             print(f"       {' | '.join(parts)}")
@@ -215,15 +244,11 @@ def cmd_add(args):
 
 def cmd_show(args):
     conn = open_db()
-    row = conn.execute(
-        "SELECT * FROM applications WHERE job_url = ?", (args.url,)
-    ).fetchone()
+    row = resolve_entry(conn, args.ref)
     conn.close()
-    if not row:
-        print(f"URL not found in tracker: {args.url}", file=sys.stderr)
-        sys.exit(1)
 
     fields = [
+        ("ID",                  str(row["id"])),
         ("URL",                 row["job_url"]),
         ("Site",                row["site"]),
         ("Title",               row["title"]),
@@ -269,21 +294,31 @@ def cmd_show(args):
 def cmd_list(args):
     conn = open_db()
     query = "SELECT * FROM applications"
-    params = []
+    conditions, params = [], []
     if args.status:
-        query += " WHERE status = ?"
+        conditions.append("status = ?")
         params.append(args.status)
+    if args.company:
+        conditions.append("company LIKE ?")
+        params.append(f"%{args.company}%")
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
     query += " ORDER BY date_applied DESC"
 
     rows = conn.execute(query, params).fetchall()
     conn.close()
 
     if not rows:
-        print("No applications tracked yet.")
+        if args.status or args.company:
+            filters = " + ".join(filter(None, [args.status, args.company and f'company~"{args.company}"']))
+            print(f"No applications found matching: {filters}")
+        else:
+            print("No applications tracked yet.")
         return
 
-    W = {"status": 11, "date": 10, "company": 18, "title": 28, "salary": 16, "site": 12}
+    W = {"id": 4, "status": 11, "date": 10, "company": 18, "title": 28, "salary": 16, "site": 12}
     header = (
+        f"{'ID':<{W['id']}} "
         f"{'Status':<{W['status']}} "
         f"{'Applied':<{W['date']}} "
         f"{'Company':<{W['company']}} "
@@ -299,6 +334,7 @@ def cmd_list(args):
         date = (row["date_applied"] or "")[:10]
         salary = fmt_salary(row)
         print(
+            f"{row['id']:<{W['id']}} "
             f"{truncate(row['status'], W['status']):<{W['status']}} "
             f"{date:<{W['date']}} "
             f"{truncate(row['company'], W['company']):<{W['company']}} "
@@ -313,25 +349,19 @@ def cmd_list(args):
 
 def cmd_notes(args):
     conn = open_db()
-    row = conn.execute(
-        "SELECT notes FROM applications WHERE job_url = ?", (args.url,)
-    ).fetchone()
-    if not row:
-        print(f"URL not found in tracker: {args.url}", file=sys.stderr)
-        conn.close()
-        sys.exit(1)
+    row = resolve_entry(conn, args.ref)
 
     timestamp = datetime.now().strftime("%Y-%m-%d")
     existing = row["notes"] or ""
     updated = f"{existing}\n[{timestamp}] {args.text}".strip()
 
     conn.execute(
-        "UPDATE applications SET notes = ? WHERE job_url = ?",
-        (updated, args.url),
+        "UPDATE applications SET notes = ? WHERE id = ?",
+        (updated, row["id"]),
     )
     conn.commit()
     conn.close()
-    print(f"Notes updated for: {args.url}")
+    print(f"Notes updated for ID {row['id']}: {row['job_url']}")
 
 
 def cmd_status(args):
@@ -339,27 +369,23 @@ def cmd_status(args):
         print(f"Invalid status '{args.new_status}'. Choose from: {', '.join(VALID_STATUSES)}", file=sys.stderr)
         sys.exit(1)
     conn = open_db()
-    cur = conn.execute(
-        "UPDATE applications SET status = ? WHERE job_url = ?",
-        (args.new_status, args.url),
+    row = resolve_entry(conn, args.ref)
+    conn.execute(
+        "UPDATE applications SET status = ? WHERE id = ?",
+        (args.new_status, row["id"]),
     )
     conn.commit()
     conn.close()
-    if cur.rowcount == 0:
-        print(f"URL not found in tracker: {args.url}", file=sys.stderr)
-        sys.exit(1)
-    print(f"Status → '{args.new_status}': {args.url}")
+    print(f"ID {row['id']} status → '{args.new_status}': {row['job_url']}")
 
 
 def cmd_remove(args):
     conn = open_db()
-    cur = conn.execute("DELETE FROM applications WHERE job_url = ?", (args.url,))
+    row = resolve_entry(conn, args.ref)
+    conn.execute("DELETE FROM applications WHERE id = ?", (row["id"],))
     conn.commit()
     conn.close()
-    if cur.rowcount == 0:
-        print(f"URL not found in tracker: {args.url}", file=sys.stderr)
-        sys.exit(1)
-    print(f"Removed: {args.url}")
+    print(f"Removed ID {row['id']}: {row['job_url']}")
 
 
 # ---------------------------------------------------------------------------
@@ -408,25 +434,26 @@ def main():
 
     # -- show -----------------------------------------------------------------
     p_show = sub.add_parser("show", help="Show all details for one application")
-    p_show.add_argument("url", help="Job posting URL")
+    p_show.add_argument("ref", help="Numeric ID (from 'list') or job posting URL")
 
     # -- list -----------------------------------------------------------------
     p_list = sub.add_parser("list", help="List tracked applications")
     p_list.add_argument("--status", choices=VALID_STATUSES, help="Filter by status")
+    p_list.add_argument("--company", help="Filter by company name (partial match, case-insensitive)")
 
     # -- notes ----------------------------------------------------------------
     p_notes = sub.add_parser("notes", help="Append a note to an application")
-    p_notes.add_argument("url", help="Job posting URL")
+    p_notes.add_argument("ref", help="Numeric ID (from 'list') or job posting URL")
     p_notes.add_argument("text", help="Note text to append")
 
     # -- status ---------------------------------------------------------------
     p_status = sub.add_parser("status", help="Update the status of an application")
-    p_status.add_argument("url", help="Job posting URL")
+    p_status.add_argument("ref", help="Numeric ID (from 'list') or job posting URL")
     p_status.add_argument("new_status", choices=VALID_STATUSES)
 
     # -- remove ---------------------------------------------------------------
-    p_remove = sub.add_parser("remove", help="Remove a URL from the tracker")
-    p_remove.add_argument("url", help="Job posting URL")
+    p_remove = sub.add_parser("remove", help="Remove an application from the tracker")
+    p_remove.add_argument("ref", help="Numeric ID (from 'list') or job posting URL")
 
     args = parser.parse_args()
     {
