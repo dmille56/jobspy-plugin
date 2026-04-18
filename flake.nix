@@ -58,6 +58,11 @@
       }
     )
     // {
+      overlays.default = final: prev: {
+        jobspy = self.packages.${final.stdenv.hostPlatform.system}.default;
+        "jobspy-plugin" = self.packages.${final.stdenv.hostPlatform.system}.default;
+      };
+
       openclawPlugin = system: {
         name = "jobspy";
         skills = [ ./skills/jobspy ];
