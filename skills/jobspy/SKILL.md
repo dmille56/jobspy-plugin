@@ -1,10 +1,10 @@
 ---
 name: jobspy
 description: Search for job postings across LinkedIn, Indeed, Glassdoor, ZipRecruiter, Google Jobs, and more using the python-jobspy library
-metadata: {"openclaw": {"emoji": "💼", "requires": {"bins": ["python3"]}, "install": [{"id": "uv", "kind": "uv", "label": "Install python-jobspy", "formula": "python-jobspy"}]}}
+metadata: {"openclaw": {"emoji": "💼", "requires": {"bins": ["jobspy"]}}}
 ---
 
-Use `search.py` (in the same directory as this file) to search for jobs across multiple boards. The script handles scraping, filtering, and fit scoring automatically — do not write your own Python for these tasks.
+Use `jobspy`. The packaged binary handles scraping, filtering, fit scoring, and application tracking automatically — do not write your own Python for these tasks.
 
 ## Trigger
 
@@ -12,10 +12,10 @@ TRIGGER when the user wants to search for jobs, find job postings, scrape job li
 
 ## Running a search
 
-Find `search.py` in the same directory as this SKILL.md, then run:
+Run:
 
 ```bash
-python <path_to_search.py> --search-term "software engineer" --location "Austin, TX" [options]
+jobspy search --search-term "software engineer" --location "Austin, TX" [options]
 ```
 
 ### Flags
@@ -70,9 +70,9 @@ The script reads this file automatically on every run. Filtering and fit scoring
 - **`fit_keywords`**: Weighted terms scored against title + description; results are sorted by fit score descending, with newer `date_posted` values breaking ties.
 - **`fit_description`**: Plain-English ideal-job description — use as context when summarizing or highlighting top matches.
 
-## Application tracking (`tracker.py`)
+## Application tracking (`jobspy tracker`)
 
-Use `tracker.py` (in the same directory as this file) to record jobs you have applied to. Tracked jobs are **automatically excluded** from all future `search.py` results.
+Use `jobspy tracker` to record jobs you have applied to. Tracked jobs are **automatically excluded** from all future `jobspy search` results.
 
 Database: `~/.config/openclaw-jobspy/applications.db` (SQLite, created and migrated automatically)
 
@@ -87,7 +87,7 @@ Jobs are assigned a short **numeric ID** on creation (shown by `add` and `list`)
 ```bash
 # Record an application — include as much metadata as available
 # Prints the assigned ID on success, e.g. "Added (ID 7): https://..."
-python tracker.py add <url> \
+jobspy tracker add <url> \
     --site linkedin --title "Software Engineer" --company "Acme" \
     --company-url "https://acme.com" --location "Austin, TX" --remote \
     --job-type fulltime --job-function Engineering --job-level "Mid-Senior" \
@@ -98,20 +98,20 @@ python tracker.py add <url> \
     --notes "Applied via LinkedIn easy apply"
 
 # Show all stored details for one application
-python tracker.py show 7
-python tracker.py show <url>   # URL also accepted
+jobspy tracker show 7
+jobspy tracker show <url>   # URL also accepted
 
 # List all applications — ID column appears first
-python tracker.py list [--status applied|interviewing|offer|rejected|withdrawn] [--company "Acme"]
+jobspy tracker list [--status applied|interviewing|offer|rejected|withdrawn] [--company "Acme"]
 
 # Append a timestamped note (use ID or URL)
-python tracker.py notes 7 "Had phone screen with recruiter Sarah. Next: technical."
+jobspy tracker notes 7 "Had phone screen with recruiter Sarah. Next: technical."
 
 # Update status (use ID or URL)
-python tracker.py status 7 interviewing
+jobspy tracker status 7 interviewing
 
 # Remove from tracker — will reappear in future searches (use ID or URL)
-python tracker.py remove 7
+jobspy tracker remove 7
 ```
 
 ### Fields stored
@@ -135,7 +135,7 @@ python tracker.py remove 7
 | `currency` | posting | Salary currency |
 | `description` | posting | Full job description text |
 | `emails` | posting | Contact email(s) from the posting |
-| `date_applied` | tracking | When you ran `tracker.py add` |
+| `date_applied` | tracking | When you ran `jobspy tracker add` |
 | `status` | tracking | Current application status |
 | `application_method` | tracking | How you applied |
 | `follow_up_date` | tracking | Date to follow up |
@@ -145,7 +145,7 @@ python tracker.py remove 7
 
 ## Adding a job to the tracker by URL
 
-When a user provides a job posting URL to track (without first finding it via `search.py`), fetch the page and extract as many fields as possible before calling `tracker.py add`.
+When a user provides a job posting URL to track (without first finding it via `jobspy search`), fetch the page and extract as many fields as possible before calling `jobspy tracker add`.
 
 ### Step 1 — Detect the job board from the URL
 
@@ -184,24 +184,24 @@ Use the WebFetch tool to retrieve the URL. From the returned content, extract ev
 Some job boards (especially LinkedIn) block unauthenticated fetches or require JavaScript rendering. If WebFetch returns an error, a login wall, or no useful content:
 
 1. Parse what you can from the URL itself (job ID, board name).
-2. Run a narrow `search.py` query using any title/company gleaned from the URL or user:
+2. Run a narrow `jobspy search` query using any title/company gleaned from the URL or user:
    ```bash
-   python search.py --search-term "<title>" --sites <board> --results 5
+    jobspy search --search-term "<title>" --sites <board> --results 5
    ```
 3. Match the result whose `job_url` most closely matches the original URL and use its structured data.
 4. If no match is found, add the URL to the tracker with only the fields known and tell the user which fields are missing.
 
-### Step 4 — Run tracker.py add
+### Step 4 — Run `jobspy tracker add`
 
-Construct the `tracker.py add` command with every field extracted, then run it. Show the user a summary of what was filled in and what couldn't be found.
+Construct the `jobspy tracker add` command with every field extracted, then run it. Show the user a summary of what was filled in and what couldn't be found.
 
 ## Workflow
 
 1. Ask for search term and location if not provided.
-2. Run `search.py` with the appropriate flags — already-applied jobs are filtered out automatically.
+2. Run `jobspy search` with the appropriate flags — already-applied jobs are filtered out automatically.
 3. Display the printed table (sorted by fit score, then recency).
 4. Offer to save to CSV (`--output jobs.csv`).
-5. When the user provides a job URL to track, follow the "Adding a job by URL" steps above before calling `tracker.py add`.
-6. When the user says they applied to a job already in the tracker, use `tracker.py status` and/or `tracker.py notes` rather than re-adding.
+5. When the user provides a job URL to track, follow the "Adding a job by URL" steps above before calling `jobspy tracker add`.
+6. When the user says they applied to a job already in the tracker, use `jobspy tracker status` and/or `jobspy tracker notes` rather than re-adding.
 7. If the user wants to update preferences (block a company, add a keyword, etc.), update `~/.config/openclaw-jobspy/preferences.json` and confirm.
 8. If rate-limited (HTTP 429), suggest reducing `--results` or adding proxies via the `proxies` parameter in a manual script call.

@@ -6,31 +6,58 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs { inherit system; };
-        myPython = pkgs.python3.withPackages (python-pkgs: [
-          python-pkgs.jobspy
-          python-pkgs.python-lsp-server
-          python-pkgs.ruff
-        ]);
+        python = pkgs.python3;
+        pythonPackages = pkgs.python3Packages;
+        myApp = pythonPackages.buildPythonApplication {
+          pname = "jobspy-plugin";
+          version = "0.1.0";
+          src = ./.;
+          format = "pyproject";
+
+          nativeBuildInputs = [
+            pythonPackages.setuptools
+            pythonPackages.wheel
+          ];
+
+          propagatedBuildInputs = [
+            pythonPackages.jobspy
+            pythonPackages.pandas
+          ];
+
+          meta = with pkgs.lib; {
+            mainProgram = "jobspy";
+          };
+        };
       in
       {
         devShells.default = pkgs.mkShell {
-          packages = [ myPython ];
-          shellHook = ''
-            export PYTHONPATH="src:."
-          '';
+          packages = [
+            python
+            pythonPackages.jobspy
+            pythonPackages.pandas
+            pythonPackages.python-lsp-server
+            pythonPackages.ruff
+          ];
         };
 
-        packages.default = myPython;
+        packages.default = myApp;
 
         apps.default = flake-utils.lib.mkApp {
           drv = self.packages.${system}.default;
         };
       }
-    ) // {
+    )
+    // {
       openclawPlugin = system: {
         name = "jobspy";
         skills = [ ./skills/jobspy ];

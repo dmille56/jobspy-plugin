@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jobspy-plugin"
+version = "0.1.0"
+description = "Job search and application tracking helpers for OpenClaw"
+requires-python = ">=3.11"
+dependencies = [
+  "pandas",
+  "python-jobspy",
+]
+
+[project.scripts]
+jobspy = "skills.jobspy.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["skills*"]
