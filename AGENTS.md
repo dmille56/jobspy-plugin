@@ -7,7 +7,7 @@ This plugin provides job search capabilities across LinkedIn, Indeed, Glassdoor,
 - Always ask for search term and location before running a search if not provided.
 - Always run searches via `search.py` — never write custom scraping or filtering Python from scratch.
 - Default to `--sites indeed,linkedin,zip_recruiter,google` unless the user specifies otherwise.
-- Present the printed table as-is; results are already filtered and sorted by fit score.
+- Present the printed table in the default search layout: company, fit, recency, salary, title, and URL. Results are already filtered and sorted by fit score, then recency.
 - Offer to save results to CSV (`--output <file>`) after every search.
 - When the user says they applied to a job, immediately run `tracker.py add <url>` and pass every available field from the search results (site, title, company, company_url, location, is_remote, job_type, job_function, job_level, company_industry, date_posted, salary fields, description, emails). The command prints the assigned numeric ID — tell the user what it is.
 - Use the numeric ID (not the URL) in all subsequent `show`, `notes`, `status`, and `remove` commands. The URL is still accepted but the ID is far easier for the user to reference.

@@ -45,7 +45,7 @@ python <path_to_search.py> --search-term "software engineer" --location "Austin,
 
 ## User preferences (`~/.config/openclaw-jobspy/preferences.json`)
 
-The script reads this file automatically on every run. Filtering and fit scoring require no flags — just maintain this file.
+The script reads this file automatically on every run. Filtering and fit scoring require no flags — just maintain this file. Results are shown as a sorted table by fit score, then recency.
 
 ```json
 {
@@ -67,7 +67,7 @@ The script reads this file automatically on every run. Filtering and fit scoring
 - **`blocked_title_keywords`**: Jobs whose title matches any of these are removed.
 - **`blocked_description_keywords`**: Jobs whose description matches any of these are removed.
 - **`required_title_keywords`**: If non-empty, only jobs matching at least one are kept.
-- **`fit_keywords`**: Weighted terms scored against title + description; results are sorted by `fit_score` descending.
+- **`fit_keywords`**: Weighted terms scored against title + description; results are sorted by fit score descending, with newer `date_posted` values breaking ties.
 - **`fit_description`**: Plain-English ideal-job description — use as context when summarizing or highlighting top matches.
 
 ## Application tracking (`tracker.py`)
@@ -199,7 +199,7 @@ Construct the `tracker.py add` command with every field extracted, then run it. 
 
 1. Ask for search term and location if not provided.
 2. Run `search.py` with the appropriate flags — already-applied jobs are filtered out automatically.
-3. Display the printed table (already sorted by `fit_score` if preferences are set).
+3. Display the printed table (sorted by fit score, then recency).
 4. Offer to save to CSV (`--output jobs.csv`).
 5. When the user provides a job URL to track, follow the "Adding a job by URL" steps above before calling `tracker.py add`.
 6. When the user says they applied to a job already in the tracker, use `tracker.py status` and/or `tracker.py notes` rather than re-adding.

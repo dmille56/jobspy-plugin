@@ -16,6 +16,8 @@ import re
 import sqlite3
 import sys
 
+import pandas as pd
+
 
 # ---------------------------------------------------------------------------
 # Preferences
@@ -94,8 +96,11 @@ def apply_filters(jobs, prefs):
 
 def score_fit(jobs, prefs):
     fit_keywords = prefs.get("fit_keywords", [])
+    jobs = jobs.copy()
+    jobs["fit_score"] = 0
+
     if not fit_keywords:
-        return jobs
+        return sort_jobs(jobs)
 
     def score_row(row):
         text = f"{row.get('title', '')} {row.get('description', '')}".lower()
@@ -111,9 +116,52 @@ def score_fit(jobs, prefs):
                 total += weight
         return total
 
-    jobs = jobs.copy()
     jobs["fit_score"] = jobs.apply(score_row, axis=1)
-    return jobs.sort_values("fit_score", ascending=False).reset_index(drop=True)
+    return sort_jobs(jobs)
+
+
+def sort_jobs(jobs):
+    if "date_posted" in jobs.columns:
+        jobs["_date_posted_sort"] = pd.to_datetime(jobs["date_posted"], errors="coerce", utc=True)
+        jobs = jobs.sort_values(
+            by=["fit_score", "_date_posted_sort"],
+            ascending=[False, False],
+            na_position="last",
+        ).drop(columns=["_date_posted_sort"])
+    else:
+        jobs = jobs.sort_values("fit_score", ascending=False)
+    return jobs.reset_index(drop=True)
+
+
+def fmt_salary(row):
+    lo, hi, interval, currency = (
+        row.get("min_amount"),
+        row.get("max_amount"),
+        row.get("salary_interval"),
+        row.get("currency"),
+    )
+    if pd.isna(lo) and pd.isna(hi):
+        return ""
+    cur = currency or ""
+    interval_label = f"/{interval}" if interval else ""
+    if pd.notna(lo) and pd.notna(hi):
+        return f"{cur}{int(lo):,}-{int(hi):,}{interval_label}"
+    val = lo if pd.notna(lo) else hi
+    return f"{cur}{int(val):,}{interval_label}"
+
+
+def fmt_recency(value):
+    dt = pd.to_datetime(value, errors="coerce", utc=True)
+    if pd.isna(dt):
+        return ""
+    delta = pd.Timestamp.now(tz="UTC") - dt
+    if delta.days >= 1:
+        return f"{delta.days}d ago"
+    hours = max(int(delta.total_seconds() // 3600), 0)
+    if hours >= 1:
+        return f"{hours}h ago"
+    minutes = max(int(delta.total_seconds() // 60), 0)
+    return f"{minutes}m ago"
 
 
 # ---------------------------------------------------------------------------
@@ -208,9 +256,15 @@ def main():
     print(f"Found {len(jobs)} jobs after filtering\n")
 
     # Display summary table
-    display_cols = ["fit_score", "site", "title", "company", "location", "min_amount", "max_amount", "job_url"]
-    display_cols = [c for c in display_cols if c in jobs.columns]
-    print(jobs[display_cols].to_string(index=False))
+    blank = pd.Series([""] * len(jobs), index=jobs.index)
+    display_df = pd.DataFrame(index=jobs.index)
+    display_df["company"] = jobs["company"] if "company" in jobs.columns else blank
+    display_df["fit"] = jobs["fit_score"] if "fit_score" in jobs.columns else blank
+    display_df["recency"] = jobs["date_posted"].map(fmt_recency) if "date_posted" in jobs.columns else blank
+    display_df["salary"] = jobs.apply(fmt_salary, axis=1)
+    display_df["title"] = jobs["title"] if "title" in jobs.columns else blank
+    display_df["url"] = jobs["job_url"] if "job_url" in jobs.columns else blank
+    print(display_df.to_string(index=False))
 
     # Optionally save to CSV
     if args.output:
