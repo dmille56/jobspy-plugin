@@ -18,6 +18,10 @@
         pkgs = import nixpkgs { inherit system; };
         python = pkgs.python3;
         pythonPackages = pkgs.python3Packages;
+        jobspySkill = pkgs.runCommand "jobspy-skill" { } ''
+          mkdir -p "$out"
+          cp ${./skills/jobspy/SKILL.md} "$out/SKILL.md"
+        '';
         myApp = pythonPackages.buildPythonApplication {
           pname = "jobspy-plugin";
           version = "0.1.0";
@@ -50,6 +54,8 @@
           ];
         };
 
+        packages.jobspySkill = jobspySkill;
+
         packages.default = myApp;
 
         apps.default = flake-utils.lib.mkApp {
@@ -61,12 +67,23 @@
       overlays.default = final: prev: {
         jobspy = self.packages.${final.stdenv.hostPlatform.system}.default;
         "jobspy-plugin" = self.packages.${final.stdenv.hostPlatform.system}.default;
+        jobspySkill = self.packages.${final.stdenv.hostPlatform.system}.jobspySkill;
+        "jobspy-skill" = self.packages.${final.stdenv.hostPlatform.system}.jobspySkill;
       };
+
+      homeManagerModules.jobspy =
+        { pkgs, ... }:
+        {
+          home.file.".agents/skills/jobspy/SKILL.md".source = "${pkgs.jobspySkill}/SKILL.md";
+        };
 
       openclawPlugin = system: {
         name = "jobspy";
         skills = [ ./skills/jobspy ];
-        packages = [ self.packages.${system}.default ];
+        packages = [
+          self.packages.${system}.default
+          self.packages.${system}.jobspySkill
+        ];
         needs = {
           stateDirs = [ ];
           requiredEnv = [ ];
