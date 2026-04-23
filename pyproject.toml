@@ -28,6 +28,8 @@ dependencies = [
 
 [project.scripts]
 jobspy = "skills.jobspy.cli:main"
+jobspy-post-install = "skills.jobspy.post_install:main"
+jobspy-post-uninstall = "skills.jobspy.post_uninstall:main"
 
 [tool.setuptools]
 include-package-data = true
