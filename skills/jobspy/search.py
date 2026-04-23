@@ -168,8 +168,9 @@ def fmt_recency(value):
 # CLI
 # ---------------------------------------------------------------------------
 
-def build_parser():
+def build_parser(prog=None):
     p = argparse.ArgumentParser(
+        prog=prog,
         description="Search job boards with preference-based filtering and fit scoring.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
@@ -205,14 +206,14 @@ def build_parser():
     return p
 
 
-def main():
-    args = build_parser().parse_args()
+def main(argv=None, prog=None):
+    args = build_parser(prog=prog).parse_args(argv)
 
     try:
         from jobspy import scrape_jobs
     except ImportError:
         print("Error: python-jobspy is not installed.", file=sys.stderr)
-        print("Install it with:  uv pip install python-jobspy", file=sys.stderr)
+        print("Install it with the nix package for this plugin.", file=sys.stderr)
         sys.exit(1)
 
     # Build scrape_jobs kwargs

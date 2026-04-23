@@ -392,8 +392,9 @@ def cmd_remove(args):
 # CLI
 # ---------------------------------------------------------------------------
 
-def main():
+def build_parser(prog=None):
     parser = argparse.ArgumentParser(
+        prog=prog,
         description="Track job applications and filter them from future searches.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
@@ -455,7 +456,12 @@ def main():
     p_remove = sub.add_parser("remove", help="Remove an application from the tracker")
     p_remove.add_argument("ref", help="Numeric ID (from 'list') or job posting URL")
 
-    args = parser.parse_args()
+    return parser
+
+
+def main(argv=None, prog=None):
+    parser = build_parser(prog=prog)
+    args = parser.parse_args(argv)
     {
         "add":    cmd_add,
         "show":   cmd_show,
