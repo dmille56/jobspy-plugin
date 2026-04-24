@@ -23,8 +23,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "dmille56";
             repo = "JobSpy";
-            rev = "713a87a0962b2d3481443f7b1466b5bf7ce27369";
-            sha256 = "sha256-aekq0RgYH9pgJ1lMKaRQaq7vrbQH9zHPyv0tnuS/x98=";
+            rev = "ed205bf3566fae606968495c438baf6c711af32d";
+            sha256 = "ha256-C+kV5VLUGINDFGXM1OS0jDKMo4ZfsKinO8O4xBdJ2B8=";
           };
         });
         jobspySkill = pkgs.runCommand "jobspy-skill" { } ''
