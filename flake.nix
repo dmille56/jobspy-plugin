@@ -19,12 +19,12 @@
         python = pkgs.python3;
         pythonPackages = pkgs.python3Packages;
         jobspy = pythonPackages.jobspy.overridePythonAttrs (old: rec {
-          version = "1.1.82-fork-713a87a";
+          version = "1.1.82-fork-8bbc43d";
           src = pkgs.fetchFromGitHub {
             owner = "dmille56";
             repo = "JobSpy";
-            rev = "1f0530ac5ea0adf3953d9564c4af6a064c866cce";
-            sha256 = "sha256-vZ9vtpzapHBXSLIWiE5Bol0PLvjEJkUH/9hbUnSWIKs=";
+            rev = "8bbc43db46b0f5e40f28d069fcea2f8cdce15f0b";
+            sha256 = "sha256:J3nsmLXplq6rdXZ3iTCev/1007YEGvo46+SVv7n+FTI=";
           };
         });
         jobspySkill = pkgs.runCommand "jobspy-skill" { } ''
