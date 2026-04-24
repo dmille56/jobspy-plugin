@@ -24,7 +24,7 @@
             owner = "dmille56";
             repo = "JobSpy";
             rev = "ed205bf3566fae606968495c438baf6c711af32d";
-            sha256 = "ha256-C+kV5VLUGINDFGXM1OS0jDKMo4ZfsKinO8O4xBdJ2B8=";
+            sha256 = "sha256-C+kV5VLUGINDFGXM1OS0jDKMo4ZfsKinO8O4xBdJ2B8=";
           };
         });
         jobspySkill = pkgs.runCommand "jobspy-skill" { } ''
