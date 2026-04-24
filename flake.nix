@@ -18,6 +18,15 @@
         pkgs = import nixpkgs { inherit system; };
         python = pkgs.python3;
         pythonPackages = pkgs.python3Packages;
+        jobspy = pythonPackages.jobspy.overridePythonAttrs (old: rec {
+          version = "1.1.82-fork-713a87a";
+          src = pkgs.fetchFromGitHub {
+            owner = "dmille56";
+            repo = "JobSpy";
+            rev = "713a87a0962b2d3481443f7b1466b5bf7ce27369";
+            sha256 = "sha256-aekq0RgYH9pgJ1lMKaRQaq7vrbQH9zHPyv0tnuS/x98=";
+          };
+        });
         jobspySkill = pkgs.runCommand "jobspy-skill" { } ''
           mkdir -p "$out"
           cp ${./skills/jobspy/SKILL.md} "$out/SKILL.md"
@@ -34,7 +43,7 @@
           ];
 
           propagatedBuildInputs = [
-            pythonPackages.jobspy
+            jobspy
             pythonPackages.pandas
           ];
 
@@ -47,7 +56,7 @@
         devShells.default = pkgs.mkShell {
           packages = [
             python
-            pythonPackages.jobspy
+            jobspy
             pythonPackages.pandas
             pythonPackages.python-lsp-server
             pythonPackages.ruff

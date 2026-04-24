@@ -179,7 +179,7 @@ def build_parser(prog=None):
     p.add_argument(
         "--sites",
         default="indeed,linkedin,zip_recruiter,google",
-        help="Comma-separated job boards: indeed, linkedin, zip_recruiter, glassdoor, google, bayt, bdjobs",
+        help="Comma-separated job boards: indeed, linkedin, zip_recruiter, glassdoor, google, dice, bayt, bdjobs",
     )
     p.add_argument("--results", "-n", type=int, default=15, help="Results per site")
     p.add_argument("--hours-old", type=int, help="Only postings newer than N hours")

@@ -23,7 +23,7 @@ classifiers = [
 ]
 dependencies = [
   "pandas",
-  "python-jobspy",
+  "python-jobspy @ git+https://github.com/dmille56/JobSpy@713a87a0962b2d3481443f7b1466b5bf7ce27369",
 ]
 
 [project.scripts]

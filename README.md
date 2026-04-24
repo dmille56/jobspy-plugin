@@ -10,6 +10,8 @@ Job search and application tracking helpers for OpenClaw. Search across LinkedIn
 pipx install .
 ```
 
+This package wraps `python-jobspy` from the `dmille56/JobSpy` fork, pinned in both `pyproject.toml` and `flake.nix`.
+
 ## Quick Start
 
 ```bash
@@ -25,7 +27,7 @@ Run `jobspy --help` or `jobspy search --help` for full flag reference.
 |------|---------|-------------|
 | `--search-term`, `-s` | *(required)* | Job title or keyword |
 | `--location`, `-l` | | City, state, or country |
-| `--sites` | `indeed,linkedin,zip_recruiter,google` | Comma-separated boards |
+| `--sites` | `indeed,linkedin,zip_recruiter,google` | Comma-separated boards: dice, indeed, linkedin, zip_recruiter, glassdoor, google, bayt, bdjobs |
 | `--results`, `-n` | `15` | Results per site |
 | `--hours-old` | | Only postings newer than N hours |
 | `--job-type` | | `fulltime`, `parttime`, `internship`, `contract` |

@@ -1,6 +1,6 @@
 ---
 name: jobspy
-description: Search for job postings across LinkedIn, Indeed, Glassdoor, ZipRecruiter, Google Jobs, and more using the python-jobspy library
+description: Search for job postings across LinkedIn, Indeed, Glassdoor, ZipRecruiter, DICE, Google Jobs, Bayt, and more using the python-jobspy library
 metadata: {"openclaw": {"emoji": "💼", "requires": {"bins": ["jobspy"]}}}
 ---
 
@@ -8,7 +8,7 @@ Use `jobspy`. The packaged binary handles scraping, filtering, fit scoring, and 
 
 ## Trigger
 
-TRIGGER when the user wants to search for jobs, find job postings, scrape job listings, or query job boards (LinkedIn, Indeed, Glassdoor, ZipRecruiter, Google Jobs, Bayt, BDJobs).
+TRIGGER when the user wants to search for jobs, find job postings, scrape job listings, or query job boards (LinkedIn, Indeed, Glassdoor, ZipRecruiter, DICE, Google Jobs, Bayt, BDJobs).
 
 ## Running a search
 
@@ -24,7 +24,7 @@ jobspy search --search-term "software engineer" --location "Austin, TX" [options
 |------|---------|-------------|
 | `--search-term`, `-s` | *(required)* | Job title or keyword |
 | `--location`, `-l` | | City, state, or country |
-| `--sites` | `indeed,linkedin,zip_recruiter,google` | Comma-separated boards: `indeed`, `linkedin`, `zip_recruiter`, `glassdoor`, `google`, `bayt`, `bdjobs` |
+| `--sites` | `indeed,linkedin,zip_recruiter,google` | Comma-separated boards: `indeed`, `linkedin`, `zip_recruiter`, `glassdoor`, `google`, `dice`, `bayt`, `bdjobs` |
 | `--results`, `-n` | `15` | Results per site |
 | `--hours-old` | | Only postings newer than N hours |
 | `--job-type` | | `fulltime`, `parttime`, `internship`, or `contract` |
@@ -41,6 +41,7 @@ jobspy search --search-term "software engineer" --location "Austin, TX" [options
 - **LinkedIn**: Strictest rate limits — reduce `--results` or use proxies for large searches; `--hours-old` and `easy_apply` cannot be combined
 - **Indeed/Glassdoor**: `--hours-old` cannot be combined with `--job-type`, `--remote`
 - **ZipRecruiter**: US and Canada only
+- **DICE**: Integrates with the dmille56/JobSpy fork; use the fork dependency (not nixpkgs) to enable this board
 - **Google**: Supports advanced search syntax natively via `--search-term`
 
 ## User preferences (`~/.config/openclaw-jobspy/preferences.json`)
@@ -157,6 +158,7 @@ Map the domain to a `site` value:
 | `indeed.com` | `indeed` |
 | `glassdoor.com` | `glassdoor` |
 | `ziprecruiter.com` | `zip_recruiter` |
+| `dice.com` | `dice` |
 | `google.com/about/careers` or Google Jobs | `google` |
 
 If the domain doesn't match a known board, set `site` to the bare domain (e.g. `greenhouse.io`).
