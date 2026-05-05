@@ -44,9 +44,15 @@ jobspy search --search-term "software engineer" --location "Austin, TX" [options
 - **DICE**: Integrates with the dmille56/JobSpy fork; use the fork dependency (not nixpkgs) to enable this board
 - **Google**: Supports advanced search syntax natively via `--search-term`
 
+### Result display
+
+After every `jobspy search`, present results as a table with the columns, in this exact order: `title`, `company`, `salary`, `fit`, `age`, `url`.
+- **age** — human-readable posting age derived from `date_posted` (for example, `2d ago` or `12h ago`)
+Keep the results sorted by fit score descending, then recency breaking ties.
+
 ## User preferences (`~/.config/openclaw-jobspy/preferences.json`)
 
-The script reads this file automatically on every run. Filtering and fit scoring require no flags — just maintain this file. Results are shown as a sorted table by fit score, then recency.
+The script reads this file automatically on every run. Filtering and fit scoring require no flags — just maintain this file. Results are shown as a sorted table by fit score, then recency, and should use the default result columns `title`, `company`, `salary`, `fit`, `age`, `url`.
 
 ```json
 {
@@ -201,7 +207,7 @@ Construct the `jobspy tracker add` command with every field extracted, then run 
 
 1. Ask for search term and location if not provided.
 2. Run `jobspy search` with the appropriate flags — already-applied jobs are filtered out automatically.
-3. Display the printed table (sorted by fit score, then recency).
+3. Display the printed table with columns `title`, `company`, `salary`, `fit`, `age`, `url` (sorted by fit score, then recency).
 4. Offer to save to CSV (`--output jobs.csv`).
 5. When the user provides a job URL to track, follow the "Adding a job by URL" steps above before calling `jobspy tracker add`.
 6. When the user says they applied to a job already in the tracker, use `jobspy tracker status` and/or `jobspy tracker notes` rather than re-adding.
