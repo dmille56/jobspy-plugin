@@ -26,7 +26,7 @@ jobspy search --search-term "software engineer" --location "Austin, TX" [options
 | `--location`, `-l` | | City, state, or country |
 | `--sites` | `indeed,linkedin,zip_recruiter,google` | Comma-separated boards: `indeed`, `linkedin`, `zip_recruiter`, `glassdoor`, `google`, `dice`, `bayt`, `bdjobs` |
 | `--results`, `-n` | `15` | Results per site |
-| `--hours-old` | | Only postings newer than N hours |
+| `--hours-old` | `120` | Only postings newer than N hours (last 5 days) |
 | `--job-type` | | `fulltime`, `parttime`, `internship`, or `contract` |
 | `--remote` | | Remote positions only |
 | `--distance` | `50` | Search radius in miles |

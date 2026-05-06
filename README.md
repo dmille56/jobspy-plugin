@@ -29,7 +29,7 @@ Run `jobspy --help` or `jobspy search --help` for full flag reference.
 | `--location`, `-l` | | City, state, or country |
 | `--sites` | `indeed,linkedin,zip_recruiter,google` | Comma-separated boards: dice, indeed, linkedin, zip_recruiter, glassdoor, google, bayt, bdjobs |
 | `--results`, `-n` | `15` | Results per site |
-| `--hours-old` | | Only postings newer than N hours |
+| `--hours-old` | `120` | Only postings newer than N hours (last 5 days) |
 | `--job-type` | | `fulltime`, `parttime`, `internship`, `contract` |
 | `--remote` | | Remote positions only |
 | `--distance` | `50` | Search radius in miles |
