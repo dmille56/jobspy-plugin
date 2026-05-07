@@ -24,7 +24,7 @@ jobspy search --search-term "software engineer" --location "Austin, TX" [options
 |------|---------|-------------|
 | `--search-term`, `-s` | *(required)* | Job title or keyword |
 | `--location`, `-l` | | City, state, or country |
-| `--sites` | `indeed,linkedin,zip_recruiter,google` | Comma-separated boards: `indeed`, `linkedin`, `zip_recruiter`, `glassdoor`, `google`, `dice`, `bayt`, `bdjobs` |
+| `--sites` | `default_sites` in preferences, then `indeed,linkedin,zip_recruiter,google` | Comma-separated boards: `indeed`, `linkedin`, `zip_recruiter`, `glassdoor`, `google`, `dice`, `bayt`, `bdjobs` |
 | `--results`, `-n` | `15` | Results per site |
 | `--hours-old` | `120` | Only postings newer than N hours (last 5 days) |
 | `--job-type` | | `fulltime`, `parttime`, `internship`, or `contract` |
@@ -56,6 +56,7 @@ The script reads this file automatically on every run. Filtering and fit scoring
 
 ```json
 {
+  "default_sites": ["indeed", "linkedin", "zip_recruiter", "google"],
   "blocked_companies": ["Acme Corp", "Initech"],
   "blocked_title_keywords": ["staff", "principal", "director", "VP"],
   "blocked_description_keywords": ["security clearance", "10+ years"],
@@ -74,6 +75,7 @@ The script reads this file automatically on every run. Filtering and fit scoring
 - **`blocked_title_keywords`**: Jobs whose title matches any of these are removed.
 - **`blocked_description_keywords`**: Jobs whose description matches any of these are removed.
 - **`required_title_keywords`**: If non-empty, only jobs matching at least one are kept.
+- **`default_sites`**: Used when `jobspy search` is run without `--sites`; if missing, the built-in default boards are used.
 - **`fit_keywords`**: Weighted terms scored against title + description; results are sorted by fit score descending, with newer `date_posted` values breaking ties.
 - **`fit_description`**: Plain-English ideal-job description — use as context when summarizing or highlighting top matches.
 

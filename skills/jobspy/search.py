@@ -19,6 +19,9 @@ import sys
 import pandas as pd
 
 
+BUILTIN_DEFAULT_SITES = ["indeed", "linkedin", "zip_recruiter", "google"]
+
+
 # ---------------------------------------------------------------------------
 # Preferences
 # ---------------------------------------------------------------------------
@@ -32,6 +35,27 @@ def load_preferences():
         with open(PREFS_PATH) as f:
             return json.load(f)
     return {}
+
+
+def parse_sites(value):
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [s.strip() for s in value.split(",") if s.strip()]
+    if isinstance(value, (list, tuple)):
+        return [str(s).strip() for s in value if str(s).strip()]
+    return [str(value).strip()] if str(value).strip() else []
+
+
+def resolve_sites(args, prefs):
+    if args.sites is not None:
+        return parse_sites(args.sites)
+
+    pref_sites = parse_sites(prefs.get("default_sites"))
+    if pref_sites:
+        return pref_sites
+
+    return BUILTIN_DEFAULT_SITES.copy()
 
 
 # ---------------------------------------------------------------------------
@@ -178,8 +202,8 @@ def build_parser(prog=None):
     p.add_argument("--location", "-l", default="", help="City, state, or country")
     p.add_argument(
         "--sites",
-        default="indeed,linkedin,zip_recruiter,google",
-        help="Comma-separated job boards: indeed, linkedin, zip_recruiter, glassdoor, google, dice, bayt, bdjobs",
+        default=None,
+        help="Comma-separated job boards; falls back to preferences default_sites or the built-in default",
     )
     p.add_argument("--results", "-n", type=int, default=15, help="Results per site")
     p.add_argument("--hours-old", type=int, default=120, help="Only postings newer than N hours (default: 120, last 5 days)")
@@ -216,9 +240,13 @@ def main(argv=None, prog=None):
         print("Install it with the nix package for this plugin.", file=sys.stderr)
         sys.exit(1)
 
+    # Load preferences before resolving defaults so `default_sites` can be applied.
+    prefs = load_preferences()
+    sites = resolve_sites(args, prefs)
+
     # Build scrape_jobs kwargs
     kwargs = dict(
-        site_name=[s.strip() for s in args.sites.split(",")],
+        site_name=sites,
         search_term=args.search_term,
         results_wanted=args.results,
         distance=args.distance,
@@ -244,8 +272,7 @@ def main(argv=None, prog=None):
     # Filter out already-applied jobs
     jobs = filter_applied(jobs, load_applied_urls())
 
-    # Load preferences and apply filters/scoring
-    prefs = load_preferences()
+    # Apply filters/scoring
 
     fit_desc = prefs.get("fit_description", "")
     if fit_desc:

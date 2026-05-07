@@ -82,6 +82,7 @@ Results are sorted by a fit score calculated from `~/.config/openclaw-jobspy/pre
 
 ```json
 {
+  "default_sites": ["indeed", "linkedin", "zip_recruiter", "google"],
   "fit_keywords": [
     {"keyword": "python", "weight": 3},
     {"keyword": "remote", "weight": 2}
@@ -95,6 +96,7 @@ Results are sorted by a fit score calculated from `~/.config/openclaw-jobspy/pre
 - Each matching keyword in title + description adds its weight to the score
 - Blocked companies and title keywords are filtered out entirely
 - `required_title_keywords` — only keep jobs matching at least one
+- `default_sites` — used when `jobspy search` is run without `--sites`
 - Tiebreaker: newer `date_posted` values rank higher
 
 Run `jobspy search` and results are pre-filtered and pre-sorted — no extra flags needed.
