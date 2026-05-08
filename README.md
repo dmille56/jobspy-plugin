@@ -7,7 +7,7 @@ Job search and application tracking helpers for OpenClaw. Search across LinkedIn
 ## Install (run from the repo root)
 
 ```bash
-pipx install .
+pipx install . && jobspy-post-install
 ```
 
 This package wraps `python-jobspy` from the `dmille56/JobSpy` fork, pinned in both `pyproject.toml` and `flake.nix`.
