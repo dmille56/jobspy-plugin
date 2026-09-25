@@ -85,6 +85,8 @@
         { pkgs, ... }:
         {
           home.file.".agents/skills/jobspy/SKILL.md".source = "${pkgs.jobspySkill}/SKILL.md";
+          home.file.".codex/skills/jobspy/SKILL.md".source = "${pkgs.jobspySkill}/SKILL.md";
+          home.file.".claude/skills/jobspy/SKILL.md".source = "${pkgs.jobspySkill}/SKILL.md";
         };
 
       openclawPlugin = system: {
